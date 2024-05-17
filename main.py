@@ -5,6 +5,19 @@ import os
 import lagrange_cython
 
 
+def plot_height_profile(x, y, x_new, y_new, data, path, name):
+    plt.figure(figsize=(8, 5))
+    plt.plot(x_new, y_new, label=f'Interpolated {name}', color='red')
+    plt.plot(data.iloc[:, 0], data.iloc[:, 1], label='Original', color='blue')
+    plt.scatter(x, y, color='green')
+    plt.xlabel('Distance (m)')
+    plt.ylabel('Height (m)')
+    plt.title(f'{name} Interpolated Height Profile of {os.path.splitext(os.path.basename(path))[0]}')
+    plt.legend()
+    plt.tight_layout()
+    plt.show()
+
+
 def plot_lagrange_interpolation(path, nodes, header=True):
     # Load data
     if header:
@@ -12,67 +25,24 @@ def plot_lagrange_interpolation(path, nodes, header=True):
     else:
         data = pd.read_csv(path, header=None)
 
-
     # Chebyshev nodes
     indexes = chebyshev_nodes(0, len(data) - 1, nodes).astype(int)
-    x = data.iloc[:, 0].values[indexes]
-    y = data.iloc[:, 1].values[indexes]
+    x = data.iloc[:, 0].values[indexes].tolist()
+    y = data.iloc[:, 1].values[indexes].tolist()
 
     x_new = linspace(min(x), max(x), int(max(x)))
     y_new = lagrange_cython.lagrange_interpolation_cython(x, y, x_new)
 
-
-    # Plot original data
-    plt.figure(figsize=(20, 18))
-
-    plt.subplot(2, 1, 1)
-    plt.plot(data.iloc[:, 0], data.iloc[:, 1], color='blue')
-    plt.xlabel('Distance (m)')
-    plt.ylabel('Height (m)')
-    plt.title(f'Height Profile of {os.path.splitext(os.path.basename(path))[0]}')
-    # Plot chebyshev nodes
-    plt.subplot(2, 1, 2)
-    plt.plot(x_new, y_new, label='Interpolated Chebyshev', color='red')
-    plt.plot(data.iloc[:, 0], data.iloc[:, 1], label='Original', color='blue')
-    plt.scatter(x, y, color='red')
-    plt.xlabel('Distance (m)')
-    plt.ylabel('Height (m)')
-    plt.title(f'Lagrange Chebyshev Interpolated Height Profile of {os.path.splitext(os.path.basename(path))[0]}')
-    plt.legend()
-
-    plt.tight_layout()
-    plt.show()
-
-
+    plot_height_profile(x, y, x_new, y_new, data, path, "Lagrange Chebyshev")
 
     # Linspace Nodes
-    indexes = linspace(0, len(data) - 1, nodes).astype(int)
-    x = data.iloc[:, 0].values[indexes]
-    y = data.iloc[:, 1].values[indexes]
+    indexes = [int(i) for i in linspace(0, len(data) - 1, nodes)]
+    x = data.iloc[:, 0].values[indexes].tolist()
+    y = data.iloc[:, 1].values[indexes].tolist()
     x_new = linspace(min(x), max(x), int(max(x)))
     y_new = lagrange_cython.lagrange_interpolation_cython(x, y, x_new)
 
-
-    plt.figure(figsize=(20, 18))
-
-    plt.subplot(2, 1, 1)
-    plt.plot(data.iloc[:, 0], data.iloc[:, 1], color='blue')
-    plt.xlabel('Distance (m)')
-    plt.ylabel('Height (m)')
-    plt.title(f'Height Profile of {os.path.splitext(os.path.basename(path))[0]}')
-
-    # PLots linspace
-    plt.subplot(2, 1, 2)
-    plt.plot(x_new, y_new, label='Interpolated Linspace', color='red')
-    plt.plot(data.iloc[:, 0], data.iloc[:, 1], label='Original', color='blue')
-    plt.scatter(x, y, color='red')
-    plt.xlabel('Distance (m)')
-    plt.ylabel('Height (m)')
-    plt.title(f'Lagrange linspace Interpolated Height Profile of {os.path.splitext(os.path.basename(path))[0]}')
-    plt.legend()
-
-    plt.tight_layout()
-    plt.show()
+    plot_height_profile(x, y, x_new, y_new, data, path, "Lagrange Linspace")
 
 
 def spline_interpolation(x, y):
@@ -139,18 +109,9 @@ def plot_spline_interpolation(path, nodes, header=True):
     else:
         data = pd.read_csv(path, header=None)
 
-    # Plot original data
-    plt.figure(figsize=(20, 18))
-
-    plt.subplot(2, 1, 1)
-    plt.plot(data.iloc[:, 0], data.iloc[:, 1], color='blue')
-    plt.xlabel('Distance (m)')
-    plt.ylabel('Height (m)')
-    plt.title(f'Height Profile of {os.path.splitext(os.path.basename(path))[0]}')
-
-    indexes = linspace(0, len(data) - 1, nodes).astype(int)
-    x = data.iloc[:, 0].values[indexes]
-    y = data.iloc[:, 1].values[indexes]
+    indexes = [int(i) for i in linspace(0, len(data) - 1, nodes)]
+    x = data.iloc[:, 0].values[indexes].tolist()
+    y = data.iloc[:, 1].values[indexes].tolist()
 
     x_new = linspace(min(x), max(x), int(max(x)))
     solution = spline_interpolation(x, y)
@@ -163,19 +124,7 @@ def plot_spline_interpolation(path, nodes, header=True):
                 x_new[i] + solution[sol_idx][3]
         y_new.append(value)
 
-    # Plot spline interpolation
-    plt.subplot(2, 1, 2)
-    plt.plot(x_new, y_new, label='Interpolated Spline', color='red')
-    plt.plot(data.iloc[:, 0], data.iloc[:, 1], label='Original', color='blue')
-    plt.scatter(x, y, color='red')
-    plt.xlabel('Distance (m)')
-    plt.ylabel('Height (m)')
-    plt.title(f'Spline Interpolated Height Profile of {os.path.splitext(os.path.basename(path))[0]}')
-    plt.legend()
-
-    plt.tight_layout()
-
-    plt.show()
+    plot_height_profile(x, y, x_new, y_new, data, path, "Cubic Spline")
 
 
 def chebyshev_nodes(a, b, n):
@@ -189,8 +138,8 @@ def linspace(a, b, n):
 
 def main():
     for i in range(14, 15):
-        plot_height_profile(f'data/MountEverest.csv', i * 10)
-        plot_spline_interpolation(f'data/MountEverest.csv', i * 10)
+        plot_lagrange_interpolation(f'data/MountEverest.csv', i)
+        plot_spline_interpolation(f'data/MountEverest.csv', i)
 
 
 if __name__ == "__main__":
